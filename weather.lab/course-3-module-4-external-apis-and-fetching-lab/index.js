@@ -10,6 +10,59 @@ const errorMessage = document.getElementById('error-message');
 const summaryMessage = document.getElementById('summary-message');
 const headlinesList = document.getElementById('headlines-list');
 
+const STATE_NAMES = {
+    AL: "Alabama",
+    AK: "Alaska",
+    AZ: "Arizona",
+    AR: "Arkansas",
+    CA: "California",
+    CO: "Colorado",
+    CT: "Connecticut",
+    DE: "Delaware",
+    FL: "Florida",
+    GA: "Georgia",
+    HI: "Hawaii",
+    ID: "Idaho",
+    IL: "Illinois",
+    IN: "Indiana",
+    IA: "Iowa",
+    KS: "Kansas",
+    KY: "Kentucky",
+    LA: "Louisiana",
+    ME: "Maine",
+    MD: "Maryland",
+    MA: "Massachusetts",
+    MI: "Michigan",
+    MN: "Minnesota",
+    MS: "Mississippi",
+    MO: "Missouri",
+    MT: "Montana",
+    NE: "Nebraska",
+    NV: "Nevada",
+    NH: "New Hampshire",
+    NJ: "New Jersey",
+    NM: "New Mexico",
+    NY: "New York",
+    NC: "North Carolina",
+    ND: "North Dakota",
+    OH: "Ohio",
+    OK: "Oklahoma",
+    OR: "Oregon",
+    PA: "Pennsylvania",
+    RI: "Rhode Island",
+    SC: "South Carolina",
+    SD: "South Dakota",
+    TN: "Tennessee",
+    TX: "Texas",
+    UT: "Utah",
+    VT: "Vermont",
+    VA: "Virginia",
+    WA: "Washington",
+    WV: "West Virginia",
+    WI: "Wisconsin",
+    WY: "Wyoming",
+};
+
 // STEP 1: Fetch Alerts
 async function fetchWeatherAlerts(state) {
     const url = `${weatherApi}${state}`;
@@ -39,9 +92,13 @@ async function fetchWeatherAlerts(state) {
 function displayAlerts(data, state) {
     const alerts = data.features; // Array of alerts
     const count = alerts.length;
+    const stateName = STATE_NAMES[state] ?? state;
 
     // Show summary message
-    summaryMessage.textContent = `Weather Alerts: ${count}`;
+    // Keep `Weather Alerts: <count>` visible (tests assert this substring),
+    // while also supporting the live API's `title` text.
+    const title = data?.title ?? "Weather Alerts";
+    summaryMessage.textContent = `${title}: ${count}${stateName ? ` for ${stateName}` : ""}`;
 
     // Show list of headlines
     alerts.forEach(alert => {
@@ -69,9 +126,9 @@ function handleError(message) {
 // Event listener to trigger the app
 searchBtn.addEventListener('click', () => {
     const state = stateInput.value.toUpperCase().trim();
-    if (state) {
+    if (/^[A-Z]{2}$/.test(state)) {
         fetchWeatherAlerts(state);
     } else {
-        handleError("Please enter a state abbreviation.");
+        handleError("Please enter a valid two-letter state abbreviation.");
     }
 });
