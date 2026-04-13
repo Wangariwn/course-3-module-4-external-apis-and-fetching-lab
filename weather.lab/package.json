@@ -1,0 +1,10 @@
+{
+  "name": "weather.lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Weather lab workspace root",
+  "scripts": {
+    "test": "npm --prefix course-3-module-4-external-apis-and-fetching-lab test"
+  }
+}
+
