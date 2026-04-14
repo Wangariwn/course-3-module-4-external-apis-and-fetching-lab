@@ -8,13 +8,28 @@
 </head>
 <body>
   <h1>Weather Alerts App</h1>
-  <input type="text" id="state-input" placeholder="Enter state abbreviation">
-  <button type="button" id="search-btn">Get Weather Alerts</button>
+  <div class="controls">
+    <label for="state-input">U.S. state abbreviation</label>
+    <input
+      type="text"
+      id="state-input"
+      placeholder="Enter state abbreviation"
+      autocomplete="off"
+      inputmode="text"
+      maxlength="2"
+      aria-describedby="help-text"
+    >
+    <p id="help-text" class="help-text">Example: <strong>CA</strong>, <strong>NY</strong>, <strong>TX</strong></p>
+    <button type="button" id="search-btn">Get Weather Alerts</button>
+  </div>
+  <div id="loading-spinner" class="hidden" role="status" aria-live="polite">
+    Loading alerts…
+  </div>
   <div id="alerts-display">
-    <p id="summary-message"></p>
+    <p id="summary-message" aria-live="polite"></p>
     <ul id="headlines-list"></ul>
   </div>
-  <div id="error-message" class="hidden"></div>
+  <div id="error-message" class="hidden" role="alert" aria-live="assertive"></div>
   <script src="./index.js"></script>
 </body>
 </html>

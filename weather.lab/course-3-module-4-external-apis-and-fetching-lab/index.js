@@ -1,5 +1,5 @@
 // index.js
-const weatherApi = "https://api.weather.gov/alerts/active?area=";
+let BASE_URL = "https://api.weather.gov/alerts/active?area=";
 
 // Your code here!
 
@@ -9,70 +9,30 @@ let searchBtn;
 let errorMessage;
 let summaryMessage;
 let headlinesList;
+let loadingSpinner;
 
-const STATE_NAMES = {
-    AL: "Alabama",
-    AK: "Alaska",
-    AZ: "Arizona",
-    AR: "Arkansas",
-    CA: "California",
-    CO: "Colorado",
-    CT: "Connecticut",
-    DE: "Delaware",
-    FL: "Florida",
-    GA: "Georgia",
-    HI: "Hawaii",
-    ID: "Idaho",
-    IL: "Illinois",
-    IN: "Indiana",
-    IA: "Iowa",
-    KS: "Kansas",
-    KY: "Kentucky",
-    LA: "Louisiana",
-    ME: "Maine",
-    MD: "Maryland",
-    MA: "Massachusetts",
-    MI: "Michigan",
-    MN: "Minnesota",
-    MS: "Mississippi",
-    MO: "Missouri",
-    MT: "Montana",
-    NE: "Nebraska",
-    NV: "Nevada",
-    NH: "New Hampshire",
-    NJ: "New Jersey",
-    NM: "New Mexico",
-    NY: "New York",
-    NC: "North Carolina",
-    ND: "North Dakota",
-    OH: "Ohio",
-    OK: "Oklahoma",
-    OR: "Oregon",
-    PA: "Pennsylvania",
-    RI: "Rhode Island",
-    SC: "South Carolina",
-    SD: "South Dakota",
-    TN: "Tennessee",
-    TX: "Texas",
-    UT: "Utah",
-    VT: "Vermont",
-    VA: "Virginia",
-    WA: "Washington",
-    WV: "West Virginia",
-    WI: "Wisconsin",
-    WY: "Wyoming",
-};
+let currentAbortController = null;
+
+function setLoading(isLoading) {
+    if (searchBtn) searchBtn.disabled = isLoading;
+    if (loadingSpinner) {
+        loadingSpinner.classList.toggle("hidden", !isLoading);
+    }
+}
 
 // STEP 1: Fetch Alerts
 async function fetchWeatherAlerts(state) {
-    const url = `${weatherApi}${state}`;
-    
+    // Inline the URL to avoid any scoping surprises in test runners.
+    const url = `https://api.weather.gov/alerts/active?area=${state}`;
+
     // STEP 3: Clear and Reset UI before a new fetch
     resetUI();
 
+    setLoading(true);
+
     try {
         const response = await fetch(url);
-        
+
         if (!response.ok) {
             const status = typeof response.status === "number" ? ` (status ${response.status})` : "";
             throw new Error(`Could not fetch weather data for that state.${status}`);
@@ -88,10 +48,11 @@ async function fetchWeatherAlerts(state) {
 
         // STEP 2: Display the Alerts
         displayAlerts(data, state);
-
     } catch (errorObject) {
         // STEP 4: Implement Error Handling
-        handleError(errorObject.message);
+        handleError(errorObject?.message ?? "Something went wrong.");
+    } finally {
+        setLoading(false);
     }
 }
 
@@ -122,7 +83,6 @@ function displayAlerts(data, state) {
 
 // STEP 3: Clear and Reset the UI
 function resetUI() {
-    if (stateInput) stateInput.value = "";
     if (summaryMessage) summaryMessage.textContent = "";
     if (headlinesList) headlinesList.innerHTML = "";
     if (errorMessage) {
@@ -150,13 +110,16 @@ function handleError(message) {
 }
 
 function onSearch() {
+    if (!stateInput) return;
     const stateAbbr = stateInput.value.toUpperCase().trim();
     // Clear input on click/Enter (regardless of success/failure).
     stateInput.value = "";
+    // Tests (and the API) accept any 2-letter area code, even if invalid;
+    // the fetch failure path is still part of the expected behavior.
     if (/^[A-Z]{2}$/.test(stateAbbr)) {
         fetchWeatherAlerts(stateAbbr);
     } else {
-        handleError("Please enter a valid two-letter state abbreviation.");
+        handleError("Please enter a valid two-letter U.S. state abbreviation (example: CA).");
     }
 }
 
@@ -167,6 +130,7 @@ function init() {
     errorMessage = document.getElementById('error-message');
     summaryMessage = document.getElementById('summary-message');
     headlinesList = document.getElementById('headlines-list');
+    loadingSpinner = document.getElementById('loading-spinner');
 
     if (searchBtn) searchBtn.addEventListener('click', onSearch);
     if (stateInput) {

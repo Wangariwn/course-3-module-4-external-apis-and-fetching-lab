@@ -13,10 +13,33 @@ h1 {
   margin: 20px 0;
 }
 
+/* Controls */
+.controls {
+  width: 90%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.controls label {
+  display: block;
+  width: 80%;
+  max-width: 400px;
+  margin: 20px auto 6px;
+  font-weight: 600;
+}
+
+.help-text {
+  width: 80%;
+  max-width: 400px;
+  margin: 6px auto 10px;
+  color: #555;
+  font-size: 14px;
+}
+
 /* Input Field and Button */
 #state-input {
   display: block;
-  margin: 20px auto;
+  margin: 0 auto;
   padding: 10px;
   width: 80%;
   max-width: 400px;
@@ -41,6 +64,11 @@ h1 {
   background-color: #0056b3;
 }
 
+#search-btn:disabled {
+  background-color: #7aaee6;
+  cursor: not-allowed;
+}
+
 /* Weather Display Section */
 #alerts-display {
   margin: 20px auto;
@@ -53,12 +81,28 @@ h1 {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+#summary-message {
+  margin: 8px 0 12px;
+  font-weight: 600;
+}
+
+#headlines-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+#headlines-list li {
+  margin: 6px 0;
+}
+
 /* Error Message */
 #error-message {
   color: red;
   font-weight: bold;
   text-align: center;
-  margin-top: 10px;
+  margin: 10px auto 0;
+  width: 90%;
+  max-width: 600px;
 }
 
 /* Hidden Class for Error Handling */
@@ -68,9 +112,12 @@ h1 {
 
 /* BONUS: Loading Spinner */
 #loading-spinner {
-  display: none;
-  margin: 20px auto;
+  margin: 10px auto 0;
   text-align: center;
+  color: #333;
+  font-weight: 600;
+  width: 90%;
+  max-width: 600px;
 }
 
 #loading-spinner img {
