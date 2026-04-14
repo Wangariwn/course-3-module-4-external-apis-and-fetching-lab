@@ -3,8 +3,8 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f4;
-  color: #333;
+  background-color: pink;
+  color: palevioletred;
   line-height: 1.6;
 }
 
@@ -36,7 +36,7 @@ h1 {
   font-size: 14px;
 }
 
-/* Input Field and Button */
+/* Input Field and Buttons */
 #state-input {
   display: block;
   margin: 0 auto;
@@ -48,25 +48,37 @@ h1 {
   border-radius: 4px;
 }
 
-#search-btn {
+#fetch-alerts,
+#clear-alerts {
   display: block;
   margin: 10px auto;
   padding: 10px 20px;
   font-size: 16px;
-  background-color: #007bff;
   color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
-#search-btn:hover {
+#fetch-alerts {
+  background-color: #ff00c3;
+}
+
+#fetch-alerts:hover {
   background-color: #0056b3;
 }
 
-#search-btn:disabled {
+#fetch-alerts:disabled {
   background-color: #7aaee6;
   cursor: not-allowed;
+}
+
+#clear-alerts {
+  background-color: #6c757d;
+}
+
+#clear-alerts:hover {
+  background-color: #5a6268;
 }
 
 /* Weather Display Section */

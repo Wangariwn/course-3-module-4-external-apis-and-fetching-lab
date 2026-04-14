@@ -1,124 +1,85 @@
-let BASE_URL = "https://api.weather.gov/alerts/active?area=";
+// index.js
+let BASE_URL = "https://api.weather.gov/alerts/active?area="
+
+// Your code here!
 
 // DOM elements
-let stateInput;
-let searchBtn;
-let errorMessage;
-let summaryMessage;
-let headlinesList;
-let loadingSpinner;
+let input = document.getElementById("state-input");
+let button = document.getElementById("fetch-alerts");
+let results = document.getElementById("alerts-display");
+let errorDiv = document.getElementById("error-message");
 
-// loading state
-function setLoading(isLoading) {
-    if (searchBtn) searchBtn.disabled = isLoading;
 
-    if (loadingSpinner) {
-        if (isLoading) {
-            loadingSpinner.classList.remove("hidden");
-        } else {
-            loadingSpinner.classList.add("hidden");
-        }
-    }
+//  Clear and Reset the UI
+function clearUI() {        
+    results.innerHTML = "";   
+    errorDiv.textContent = "";
+    errorDiv.classList.add("hidden");
 }
 
-// fetch alerts
+
+//  Fetch Alerts
 async function fetchWeatherAlerts(state) {
+    let response = await fetch(BASE_URL + state);
 
-    resetUI();
-    setLoading(true);
+    if (!response.ok)  {
+        throw new Error ("Error occurred");
+    }
 
-    try {
-        let response = await fetch(BASE_URL + state);
+    let data = await response.json();
+    return data;
+}
+    
 
-        if (!response.ok) {
-            throw new Error("Failed to fetch alerts");
-        }
 
-        let data = await response.json();
+//  Display alerts on the page
+function displayAlerts(data) {
+    let count = data.features.length;
 
-        // clear error after success
-        errorMessage.textContent = "";
-        errorMessage.classList.add("hidden");
+    // Show summary message
+    let summary = document.createElement("h2");
+    summary.textContent = `${data.title}: ${count}`;
+    results.appendChild(summary);
 
+
+    // Show list of headlines
+    let list = document.createElement("ul");
+
+    data.features.forEach(function(alert) {
+
+        let item = document.createElement('li');
+        item.textContent = alert.properties.headline; 
+        list.appendChild(item);
+    });
+    results.appendChild(list);
+}
+
+
+//  Handle Errors
+function showError(message) {
+    errorDiv.textContent = message;
+    errorDiv.classList.remove("hidden");
+}
+
+
+// Event listener to trigger the app
+button.addEventListener("click", async function () {
+    let state = input.value.toUpperCase().trim();
+    
+    clearUI()
+
+    //input validation
+    if (state === "" || state.length !== 2) {
+        showError("Please enter a state abbreviation");
+        return;
+    } 
+
+    try{
+        let data = await fetchWeatherAlerts(state);
         displayAlerts(data);
 
-    } catch (err) {
-        handleError(err.message);
-    } finally {
-        setLoading(false);
+        input.value = ""; // clear input
+    }catch (err) {
+        showError(err.message);
     }
-}
-
-// display alerts
-function displayAlerts(data) {
-    let alerts = data.features || [];
-    let count = alerts.length;
-
-    // summary (IMPORTANT for tests)
-    summaryMessage.textContent = data.title + ": " + count;
-
-    // list
-    if (count === 0) {
-        let li = document.createElement("li");
-        li.textContent = "No active alerts.";
-        headlinesList.appendChild(li);
-        return;
-    }
-
-    alerts.forEach(function(alert) {
-        let li = document.createElement("li");
-        li.textContent = alert.properties.headline;
-        headlinesList.appendChild(li);
-    });
-}
-
-// clear UI
-function resetUI() {
-    summaryMessage.textContent = "";
-    headlinesList.innerHTML = "";
-    errorMessage.textContent = "";
-    errorMessage.classList.add("hidden");
-}
-
-// show error
-function handleError(message) {
-    summaryMessage.textContent = "";
-    headlinesList.innerHTML = "";
-
-    errorMessage.textContent = message;
-    errorMessage.classList.remove("hidden");
-}
-
-// button click
-function onSearch() {
-    let state = stateInput.value.trim().toUpperCase();
-
-    resetUI();
-
-    if (state === "" || state.length !== 2) {
-        handleError("Enter a valid state code");
-        return;
-    }
-
-    fetchWeatherAlerts(state);
-
-    // clear input
-    stateInput.value = "";
-}
-
-// init
-function init() {
-    stateInput = document.getElementById("state-input");
-    searchBtn = document.getElementById("fetch-alerts"); // ⚠️ FIXED ID
-    errorMessage = document.getElementById("error-message");
-    summaryMessage = document.getElementById("alerts-display"); // ⚠️ match your HTML
-    headlinesList = document.createElement("ul"); // simple fallback
-    summaryMessage.appendChild(headlinesList);
-
-    loadingSpinner = document.getElementById("loading-spinner");
-
-    searchBtn.addEventListener("click", onSearch);
-}
-
-// run
-document.addEventListener("DOMContentLoaded", init);
+});
