@@ -1,14 +1,14 @@
 // index.js
-const weatherApi = "https://api.weather.gov/alerts/active?area="
+const weatherApi = "https://api.weather.gov/alerts/active?area=";
 
 // Your code here!
 
-// DOM elements
-const stateInput = document.getElementById('state-input');
-const searchBtn = document.getElementById('search-btn');
-const errorMessage = document.getElementById('error-message');
-const summaryMessage = document.getElementById('summary-message');
-const headlinesList = document.getElementById('headlines-list');
+// DOM elements (initialized on DOMContentLoaded)
+let stateInput;
+let searchBtn;
+let errorMessage;
+let summaryMessage;
+let headlinesList;
 
 const STATE_NAMES = {
     AL: "Alabama",
@@ -74,10 +74,17 @@ async function fetchWeatherAlerts(state) {
         const response = await fetch(url);
         
         if (!response.ok) {
-            throw new Error("Could not fetch weather data for that state.");
+            const status = typeof response.status === "number" ? ` (status ${response.status})` : "";
+            throw new Error(`Could not fetch weather data for that state.${status}`);
         }
 
         const data = await response.json();
+
+        // Ensure any previous errors are cleared after success.
+        if (errorMessage) {
+            errorMessage.textContent = "";
+            errorMessage.classList.add("hidden");
+        }
 
         // STEP 2: Display the Alerts
         displayAlerts(data, state);
@@ -90,45 +97,87 @@ async function fetchWeatherAlerts(state) {
 
 // STEP 2: Display alerts on the page
 function displayAlerts(data, state) {
-    const alerts = data.features; // Array of alerts
+    const alerts = Array.isArray(data?.features) ? data.features : [];
     const count = alerts.length;
-    const stateName = STATE_NAMES[state] ?? state;
 
     // Show summary message
-    // Keep `Weather Alerts: <count>` visible (tests assert this substring),
-    // while also supporting the live API's `title` text.
-    const title = data?.title ?? "Weather Alerts";
-    summaryMessage.textContent = `${title}: ${count}${stateName ? ` for ${stateName}` : ""}`;
+    // Lab expectation: "<title>: <count>"
+    const title = typeof data?.title === "string" ? data.title : "Weather Alerts";
+    if (summaryMessage) summaryMessage.textContent = `${title}: ${count}`;
 
     // Show list of headlines
+    if (count === 0) {
+        const li = document.createElement('li');
+        li.textContent = "No active alerts.";
+        headlinesList.appendChild(li);
+        return;
+    }
+
     alerts.forEach(alert => {
         const li = document.createElement('li');
-        li.textContent = alert.properties.headline; 
+        li.textContent = alert?.properties?.headline ?? "Alert";
         headlinesList.appendChild(li);
     });
 }
 
 // STEP 3: Clear and Reset the UI
 function resetUI() {
-    stateInput.value = "";           
-    summaryMessage.textContent = ""; 
-    headlinesList.innerHTML = "";   
-    errorMessage.textContent = "";
-    errorMessage.classList.add("hidden");
+    if (stateInput) stateInput.value = "";
+    if (summaryMessage) summaryMessage.textContent = "";
+    if (headlinesList) headlinesList.innerHTML = "";
+    if (errorMessage) {
+        errorMessage.textContent = "";
+        errorMessage.classList.add("hidden");
+    }
 }
 
 // STEP 4: Handle Errors
 function handleError(message) {
-    errorMessage.textContent = message;
+    if (!errorMessage) return;
+    // Clear any previously rendered results so the error is noticeable.
+    if (summaryMessage) summaryMessage.textContent = "";
+    if (headlinesList) headlinesList.innerHTML = "";
+
+    const text =
+        typeof message === "string"
+            ? message
+            : message && typeof message.message === "string"
+                ? message.message
+                : "Something went wrong.";
+
+    errorMessage.textContent = text;
     errorMessage.classList.remove("hidden");
 }
 
-// Event listener to trigger the app
-searchBtn.addEventListener('click', () => {
-    const state = stateInput.value.toUpperCase().trim();
-    if (/^[A-Z]{2}$/.test(state)) {
-        fetchWeatherAlerts(state);
+function onSearch() {
+    const stateAbbr = stateInput.value.toUpperCase().trim();
+    // Clear input on click/Enter (regardless of success/failure).
+    stateInput.value = "";
+    if (/^[A-Z]{2}$/.test(stateAbbr)) {
+        fetchWeatherAlerts(stateAbbr);
     } else {
         handleError("Please enter a valid two-letter state abbreviation.");
     }
-});
+}
+
+// Event listener to trigger the app
+function init() {
+    stateInput = document.getElementById('state-input');
+    searchBtn = document.getElementById('search-btn');
+    errorMessage = document.getElementById('error-message');
+    summaryMessage = document.getElementById('summary-message');
+    headlinesList = document.getElementById('headlines-list');
+
+    if (searchBtn) searchBtn.addEventListener('click', onSearch);
+    if (stateInput) {
+        stateInput.addEventListener('keydown', (e) => {
+            if (e.key === "Enter") onSearch();
+        });
+    }
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+} else {
+    init();
+}
